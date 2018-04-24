@@ -199,6 +199,12 @@
 			"revisionTime": "2018-04-23T08:43:54Z"
 		},
 		{
+			"checksumSHA1": "VsE3zx2d8kpwj97TWhYddzAwBrY=",
+			"path": "github.com/fatih/color",
+			"revision": "507f6050b8568533fb3f5504de8e5205fa62a114",
+			"revisionTime": "2018-02-13T13:34:03Z"
+		},
+		{
 			"checksumSHA1": "1K+xrZ1PBez190iGt5OnMtGdih4=",
 			"origin": "github.com/hashicorp/terraform/vendor/github.com/go-ini/ini",
 			"path": "github.com/go-ini/ini",
@@ -293,6 +299,12 @@
 			"path": "github.com/jmespath/go-jmespath",
 			"revision": "25f54119f33adb9ff8b32a8960fccedb30283694",
 			"revisionTime": "2018-04-23T08:43:54Z"
+		},
+		{
+			"checksumSHA1": "iRRp6PUlGXJgudZ3FD5jySI0Ukk=",
+			"path": "github.com/mattn/go-colorable",
+			"revision": "efa589957cd060542a26d2dd7832fd6a6c6c3ade",
+			"revisionTime": "2018-03-10T13:32:14Z"
 		},
 		{
 			"checksumSHA1": "1otkAg+0Q9NksNSuQ3ijCW0xHxE=",
