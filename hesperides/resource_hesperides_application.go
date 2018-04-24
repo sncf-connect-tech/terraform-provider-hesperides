@@ -1,10 +1,10 @@
 package hesperides
 
 import (
-	"net/http"
-	"github.com/hashicorp/terraform/helper/schema"
 	"bytes"
 	"encoding/json"
+	"github.com/hashicorp/terraform/helper/schema"
+	"net/http"
 )
 
 func resourceHesperidesApplication() *schema.Resource {
