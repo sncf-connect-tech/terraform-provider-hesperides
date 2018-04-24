@@ -1,0 +1,7 @@
+{
+	"comment": "",
+	"ignore": "appengine test github.com/hashicorp/nomad/ github.com/hashicorp/terraform/backend",
+	"package": [
+	],
+	"rootPath": "github.com/victorsalaun/terraform-provider-hesperides"
+}
