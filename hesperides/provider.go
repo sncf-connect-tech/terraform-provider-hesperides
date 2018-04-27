@@ -11,19 +11,18 @@ func Provider() terraform.ResourceProvider {
 			"endpoint": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Default:     "",
 				Description: descriptions["endpoint"],
 			},
 			"token": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "",
+				Required:    true,
 				Description: descriptions["token"],
 			},
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
 			"hesperides_application": resourceHesperidesApplication(),
+			"hesperides_platform":    resourceHesperidesPlatform(),
 		},
 
 		ConfigureFunc: configureProvider,
