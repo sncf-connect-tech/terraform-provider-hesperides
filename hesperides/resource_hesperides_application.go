@@ -39,6 +39,6 @@ func resourceHesperidesApplicationDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-type HesperidesApplication struct {
+type hesperidesApplication struct {
 	Name string
 }
