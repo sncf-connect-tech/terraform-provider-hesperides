@@ -24,6 +24,8 @@ func Provider() terraform.ResourceProvider {
 			"hesperides_application": resourceHesperidesApplication(),
 			"hesperides_module":      resourceHesperidesModule(),
 			"hesperides_platform":    resourceHesperidesPlatform(),
+			"hesperides_techno":      resourceHesperidesTechno(),
+			"hesperides_template":    resourceHesperidesTemplate(),
 		},
 
 		ConfigureFunc: configureProvider,
