@@ -1,12 +1,12 @@
 package hesperides
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
-	"crypto/tls"
-	"fmt"
+
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func resourceHesperidesPlatform() *schema.Resource {
@@ -22,12 +22,14 @@ func resourceHesperidesPlatform() *schema.Resource {
 				Optional: false,
 				Required: true,
 				Computed: false,
+				ForceNew: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
 				Optional: false,
 				Required: true,
 				Computed: false,
+				ForceNew: true,
 			},
 			"version": {
 				Type:     schema.TypeString,
@@ -46,29 +48,29 @@ func resourceHesperidesPlatform() *schema.Resource {
 }
 
 func resourceHesperidesPlatformCreate(d *schema.ResourceData, meta interface{}) error {
-	fmt.Println("hello")
 	provider := meta.(*Config)
+
 	application := d.Get("application").(string)
 	name := d.Get("name").(string)
 	version := d.Get("version").(string)
 	production := d.Get("production").(bool)
-	var modules []string
-	platform := HesperidesPlatform{application_name: application, platform_name: name, application_version: version, production: production, version_id: 0, modules: modules}
-	fmt.Println(platform)
-	body := new(bytes.Buffer)
-	json.NewEncoder(body).Encode(platform)
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	req, _ := http.NewRequest(http.MethodPost, "http://localhost:8080/rest/applications/"+application+"/platforms", body)
+
+	platform := hesperidesPlatform{ApplicationName: application, PlatformName: name, ApplicationVersion: version, Production: production, VersionId: 0, Modules: []string{}}
+	platformJson, _ := json.Marshal(platform)
+
+	log.Printf("[INFO] Creating Hesperides Platform: %s", platformJson)
+
+	req, _ := http.NewRequest(http.MethodPost, provider.Endpoint+"/rest/applications/"+application+"/platforms", bytes.NewBuffer(platformJson))
 	req.Header.Add("Authorization", "Basic "+provider.Token)
-	client := &http.Client{Transport: tr}
-	response, err := client.Do(req)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(response)
+		panic(err)
 	}
+
+	d.SetId(application + "-" + name)
+
 	return nil
 }
 
@@ -77,6 +79,27 @@ func resourceHesperidesPlatformRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceHesperidesPlatformUpdate(d *schema.ResourceData, meta interface{}) error {
+	provider := meta.(*Config)
+
+	application := d.Get("application").(string)
+	name := d.Get("name").(string)
+	version := d.Get("version").(string)
+	production := d.Get("production").(bool)
+
+	platform := hesperidesPlatform{ApplicationName: application, PlatformName: name, ApplicationVersion: version, Production: production, VersionId: 0, Modules: []string{}}
+	platformJson, _ := json.Marshal(platform)
+
+	log.Printf("[INFO] Updating Hesperides Platform: %s", platformJson)
+
+	req, _ := http.NewRequest(http.MethodPut, provider.Endpoint+"/rest/applications/"+application+"/platforms", bytes.NewBuffer(platformJson))
+	req.Header.Add("Authorization", "Basic "+provider.Token)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
 	return nil
 }
 
@@ -84,11 +107,11 @@ func resourceHesperidesPlatformDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-type HesperidesPlatform struct {
-	application_name    string
-	platform_name       string
-	application_version string
-	production          bool
-	version_id          int
-	modules             []string
+type hesperidesPlatform struct {
+	ApplicationName    string   `json:"application_name"`
+	PlatformName       string   `json:"platform_name"`
+	ApplicationVersion string   `json:"application_version"`
+	Production         bool     `json:"production"`
+	VersionId          int      `json:"version_id"`
+	Modules            []string `json:"modules"`
 }
