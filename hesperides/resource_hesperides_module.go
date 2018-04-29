@@ -3,6 +3,7 @@ package hesperides
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -21,18 +22,21 @@ func resourceHesperidesModule() *schema.Resource {
 				Optional: false,
 				Required: true,
 				Computed: false,
+				ForceNew: true,
 			},
 			"version": {
 				Type:     schema.TypeString,
 				Optional: false,
 				Required: true,
 				Computed: false,
+				ForceNew: true,
 			},
 			"working_copy": {
 				Type:     schema.TypeBool,
 				Optional: false,
 				Required: true,
 				Computed: false,
+				ForceNew: true,
 			},
 			"version_id": {
 				Type:     schema.TypeInt,
@@ -46,6 +50,7 @@ func resourceHesperidesModule() *schema.Resource {
 
 func resourceHesperidesModuleCreate(d *schema.ResourceData, meta interface{}) error {
 	provider := meta.(*Config)
+
 	name := d.Get("name").(string)
 	version := d.Get("version").(string)
 	workingCopy := d.Get("working_copy").(bool)
@@ -54,17 +59,27 @@ func resourceHesperidesModuleCreate(d *schema.ResourceData, meta interface{}) er
 	module := hesperidesModule{Name: name, Version: version, WorkingCopy: workingCopy, Technos: []string{}, VersionId: versionId}
 	moduleJson, _ := json.Marshal(module)
 
+	log.Printf("[INFO] Creating Hesperides Module: %s", moduleJson)
+
 	req, _ := http.NewRequest(http.MethodPost, provider.Endpoint+"/rest/modules", bytes.NewBuffer(moduleJson))
 	req.Header.Add("Authorization", "Basic "+provider.Token)
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	_, err := client.Do(req)
 	if err != nil {
 		panic(err)
 	}
-	defer resp.Body.Close()
 
-	return resourceHesperidesApplicationRead(d, meta)
+	var workingCopyStr string
+	if workingCopy {
+		workingCopyStr = "workingcopy"
+	} else {
+		workingCopyStr = "release"
+	}
+
+	d.SetId(name + "-" + version + "-" + workingCopyStr)
+
+	return nil
 }
 
 func resourceHesperidesModuleRead(d *schema.ResourceData, meta interface{}) error {
@@ -72,7 +87,28 @@ func resourceHesperidesModuleRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceHesperidesModuleUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	provider := meta.(*Config)
+
+	name := d.Get("name").(string)
+	version := d.Get("version").(string)
+	workingCopy := d.Get("working_copy").(bool)
+	versionId := d.Get("version_id").(int)
+
+	module := hesperidesModule{Name: name, Version: version, WorkingCopy: workingCopy, Technos: []string{}, VersionId: versionId}
+	moduleJson, _ := json.Marshal(module)
+
+	log.Printf("[INFO] Updating Hesperides Module: %s", moduleJson)
+
+	req, _ := http.NewRequest(http.MethodPut, provider.Endpoint+"/rest/modules", bytes.NewBuffer(moduleJson))
+	req.Header.Add("Authorization", "Basic "+provider.Token)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	return resourceHesperidesApplicationRead(d, meta)
 }
 
 func resourceHesperidesModuleDelete(d *schema.ResourceData, meta interface{}) error {
