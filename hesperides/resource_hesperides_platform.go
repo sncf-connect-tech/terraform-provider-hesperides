@@ -2,6 +2,7 @@ package hesperides
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -19,29 +20,21 @@ func resourceHesperidesPlatform() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"application": {
 				Type:     schema.TypeString,
-				Optional: false,
 				Required: true,
-				Computed: false,
 				ForceNew: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
-				Optional: false,
 				Required: true,
-				Computed: false,
 				ForceNew: true,
 			},
 			"version": {
 				Type:     schema.TypeString,
-				Optional: false,
 				Required: true,
-				Computed: false,
 			},
 			"production": {
 				Type:     schema.TypeBool,
-				Optional: false,
 				Required: true,
-				Computed: false,
 			},
 		},
 	}
@@ -60,6 +53,7 @@ func resourceHesperidesPlatformCreate(d *schema.ResourceData, meta interface{}) 
 
 	log.Printf("[INFO] Creating Hesperides Platform: %s", platformJson)
 
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	req, _ := http.NewRequest(http.MethodPost, provider.Endpoint+"/rest/applications/"+application+"/platforms", bytes.NewBuffer(platformJson))
 	req.Header.Add("Authorization", "Basic "+provider.Token)
 	req.Header.Set("Content-Type", "application/json")
@@ -86,11 +80,12 @@ func resourceHesperidesPlatformUpdate(d *schema.ResourceData, meta interface{}) 
 	version := d.Get("version").(string)
 	production := d.Get("production").(bool)
 
-	platform := hesperidesPlatform{ApplicationName: application, PlatformName: name, ApplicationVersion: version, Production: production, VersionId: 0, Modules: []string{}}
+	platform := hesperidesPlatform{ApplicationName: application, PlatformName: name, ApplicationVersion: version, Production: production, VersionId: 1, Modules: []string{}}
 	platformJson, _ := json.Marshal(platform)
 
 	log.Printf("[INFO] Updating Hesperides Platform: %s", platformJson)
 
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	req, _ := http.NewRequest(http.MethodPut, provider.Endpoint+"/rest/applications/"+application+"/platforms", bytes.NewBuffer(platformJson))
 	req.Header.Add("Authorization", "Basic "+provider.Token)
 	req.Header.Set("Content-Type", "application/json")

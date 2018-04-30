@@ -2,6 +2,7 @@ package hesperides
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -61,6 +62,7 @@ func resourceHesperidesModuleCreate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Creating Hesperides Module: %s", moduleJson)
 
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	req, _ := http.NewRequest(http.MethodPost, provider.Endpoint+"/rest/modules", bytes.NewBuffer(moduleJson))
 	req.Header.Add("Authorization", "Basic "+provider.Token)
 	req.Header.Set("Content-Type", "application/json")
@@ -99,6 +101,7 @@ func resourceHesperidesModuleUpdate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Updating Hesperides Module: %s", moduleJson)
 
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	req, _ := http.NewRequest(http.MethodPut, provider.Endpoint+"/rest/modules", bytes.NewBuffer(moduleJson))
 	req.Header.Add("Authorization", "Basic "+provider.Token)
 	req.Header.Set("Content-Type", "application/json")

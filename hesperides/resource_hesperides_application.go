@@ -16,10 +16,7 @@ func resourceHesperidesApplication() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
-				Optional: false,
 				Required: true,
-				Computed: false,
-				ForceNew: true,
 			},
 		},
 	}
