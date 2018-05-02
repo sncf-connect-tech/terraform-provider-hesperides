@@ -63,7 +63,7 @@ func resourceHesperidesPlatformCreate(d *schema.ResourceData, meta interface{}) 
 		panic(err)
 	}
 
-	d.SetId(application + "-" + name)
+	d.SetId(buildTwoPartID(&application, &name))
 
 	return nil
 }
@@ -75,18 +75,17 @@ func resourceHesperidesPlatformRead(d *schema.ResourceData, meta interface{}) er
 func resourceHesperidesPlatformUpdate(d *schema.ResourceData, meta interface{}) error {
 	provider := meta.(*Config)
 
-	application := d.Get("application").(string)
-	name := d.Get("name").(string)
+	applicationName, platformName := parseTwoPartID(d.Id())
 	version := d.Get("version").(string)
 	production := d.Get("production").(bool)
 
-	platform := hesperidesPlatform{ApplicationName: application, PlatformName: name, ApplicationVersion: version, Production: production, VersionId: 1, Modules: []string{}}
+	platform := hesperidesPlatform{ApplicationName: applicationName, PlatformName: platformName, ApplicationVersion: version, Production: production, VersionId: 1, Modules: []string{}}
 	platformJson, _ := json.Marshal(platform)
 
 	log.Printf("[INFO] Updating Hesperides Platform: %s", platformJson)
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	req, _ := http.NewRequest(http.MethodPut, provider.Endpoint+"/rest/applications/"+application+"/platforms", bytes.NewBuffer(platformJson))
+	req, _ := http.NewRequest(http.MethodPut, provider.Endpoint+"/rest/applications/"+applicationName+"/platforms/"+platformName, bytes.NewBuffer(platformJson))
 	req.Header.Add("Authorization", "Basic "+provider.Token)
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
