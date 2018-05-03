@@ -98,6 +98,22 @@ func resourceHesperidesPlatformUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceHesperidesPlatformDelete(d *schema.ResourceData, meta interface{}) error {
+	provider := meta.(*Config)
+
+	applicationName, platformName := parseTwoPartID(d.Id())
+
+	log.Printf("[INFO] Deleting Hesperides Platform: %s", d.Id())
+
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	req, _ := http.NewRequest(http.MethodDelete, provider.Endpoint+"/rest/applications/"+applicationName+"/platforms/"+platformName, nil)
+	req.Header.Add("Authorization", "Basic "+provider.Token)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
 	return nil
 }
 

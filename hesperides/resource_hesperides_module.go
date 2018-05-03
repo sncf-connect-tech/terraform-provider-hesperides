@@ -115,7 +115,36 @@ func resourceHesperidesModuleUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceHesperidesModuleDelete(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	provider := meta.(*Config)
+
+	name := d.Get("name").(string)
+	version := d.Get("version").(string)
+	workingCopy := d.Get("working_copy").(bool)
+	versionId := d.Get("version_id").(int)
+
+	module := hesperidesModule{Name: name, Version: version, WorkingCopy: workingCopy, Technos: []string{}, VersionId: versionId}
+	moduleJson, _ := json.Marshal(module)
+
+	log.Printf("[INFO] Deleting Hesperides Module: %s", moduleJson)
+
+	var workingCopyStr string
+	if workingCopy {
+		workingCopyStr = "workingcopy"
+	} else {
+		workingCopyStr = "release"
+	}
+
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	req, _ := http.NewRequest(http.MethodDelete, provider.Endpoint+"/rest/modules/"+name+"/"+version+"/"+workingCopyStr, nil)
+	req.Header.Add("Authorization", "Basic "+provider.Token)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	return resourceHesperidesApplicationRead(d, meta)
 }
 
 type hesperidesModule struct {
