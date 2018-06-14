@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hashicorp/terraform/plugin"
-	"github.com/victorsalaun/terraform-provider-hesperides/hesperides"
+	"github.com/voyages-sncf-technologies/terraform-provider-hesperides/hesperides"
 )
 
 func main() {

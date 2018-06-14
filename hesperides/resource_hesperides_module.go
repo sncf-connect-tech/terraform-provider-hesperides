@@ -129,9 +129,9 @@ func resourceHesperidesModuleDelete(d *schema.ResourceData, meta interface{}) er
 
 	var workingCopyStr string
 	if workingCopy {
-		workingCopyStr = "workingcopy"
+		workingCopyStr = WorkingCopy
 	} else {
-		workingCopyStr = "release"
+		workingCopyStr = Release
 	}
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}

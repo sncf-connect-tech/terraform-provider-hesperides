@@ -15,3 +15,8 @@ func parseTwoPartID(id string) (string, string) {
 func buildTwoPartID(a, b *string) string {
 	return fmt.Sprintf("%s-%s", *a, *b)
 }
+
+const (
+	WorkingCopy = "workingcopy"
+	Release = "release"
+)
