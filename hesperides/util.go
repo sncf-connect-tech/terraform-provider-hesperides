@@ -18,5 +18,5 @@ func buildTwoPartID(a, b *string) string {
 
 const (
 	WorkingCopy = "workingcopy"
-	Release = "release"
+	Release     = "release"
 )
