@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -36,6 +38,150 @@ func resourceHesperidesTechno() *schema.Resource {
 				Required: true,
 				Computed: false,
 			},
+			"templates": {
+				Type:     schema.TypeList,
+				Optional: false,
+				Required: true,
+				Computed: false,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Optional: false,
+							Required: true,
+							Computed: false,
+						},
+						"namespace": {
+							Type:     schema.TypeString,
+							Optional: false,
+							Required: true,
+							Computed: false,
+						},
+						"filename": {
+							Type:     schema.TypeString,
+							Optional: false,
+							Required: true,
+							Computed: false,
+						},
+						"location": {
+							Type:     schema.TypeString,
+							Optional: false,
+							Required: true,
+							Computed: false,
+						},
+						"content": {
+							Type:     schema.TypeString,
+							Optional: false,
+							Required: true,
+							Computed: false,
+						},
+						"rights": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Required: false,
+							Computed: false,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"user": {
+										Type:     schema.TypeList,
+										Optional: false,
+										Required: true,
+										Computed: false,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"read": {
+													Type:     schema.TypeBool,
+													Optional: false,
+													Required: true,
+													Computed: false,
+												},
+												"write": {
+													Type:     schema.TypeBool,
+													Optional: false,
+													Required: true,
+													Computed: false,
+												},
+												"execute": {
+													Type:     schema.TypeBool,
+													Optional: false,
+													Required: true,
+													Computed: false,
+												},
+											},
+										},
+									},
+									"group": {
+										Type:     schema.TypeList,
+										Optional: false,
+										Required: true,
+										Computed: false,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"read": {
+													Type:     schema.TypeBool,
+													Optional: false,
+													Required: true,
+													Computed: false,
+												},
+												"write": {
+													Type:     schema.TypeBool,
+													Optional: false,
+													Required: true,
+													Computed: false,
+												},
+												"execute": {
+													Type:     schema.TypeBool,
+													Optional: false,
+													Required: true,
+													Computed: false,
+												},
+											},
+										},
+									},
+									"other": {
+										Type:     schema.TypeList,
+										Optional: false,
+										Required: true,
+										Computed: false,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"read": {
+													Type:     schema.TypeBool,
+													Optional: false,
+													Required: true,
+													Computed: false,
+												},
+												"write": {
+													Type:     schema.TypeBool,
+													Optional: false,
+													Required: true,
+													Computed: false,
+												},
+												"execute": {
+													Type:     schema.TypeBool,
+													Optional: false,
+													Required: true,
+													Computed: false,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"version_id": {
+							Type:     schema.TypeInt,
+							Optional: false,
+							Required: true,
+							Computed: false,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -52,21 +198,109 @@ func resourceHesperidesTechnoCreate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Creating Hesperides Techno: %s", technoJson)
 
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	req, _ := http.NewRequest(http.MethodPost, provider.Endpoint+"/rest/templates/packages/"+name+"/"+version+"/workingcopy/templates", bytes.NewBuffer(technoJson))
-	req.Header.Add("Authorization", "Basic "+provider.Token)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	_, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
 	var workingCopyStr string
 	if workingCopy {
 		workingCopyStr = WorkingCopy
 	} else {
 		workingCopyStr = Release
+	}
+
+	if len(d.Get("templates").([]interface{})) == 0 {
+		return fmt.Errorf("no template found")
+	}
+
+	if _, ok := d.GetOk("templates"); ok {
+		for index, raw := range d.Get("templates").([]interface{}) {
+			templateRaw := raw.(map[string]interface{})
+			templateName := templateRaw["name"].(string)
+			templateNamespace := templateRaw["namespace"].(string)
+			templateFilename := templateRaw["filename"].(string)
+			templateLocation := templateRaw["location"].(string)
+			templateContent := templateRaw["content"].(string)
+			templateVersionId := templateRaw["version_id"].(int)
+
+			var rights hesperidesTemplateRights
+			if _, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights"); ok {
+				if _, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights.0.user"); ok {
+					var user hesperidesTemplateFileRights
+					if v, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights.0.user.0.read"); ok {
+						user.Read = v.(bool)
+					}
+					if v, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights.0.user.0.write"); ok {
+						user.Write = v.(bool)
+					}
+					if v, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights.0.user.0.execute"); ok {
+						user.Execute = v.(bool)
+					}
+					rights.User = user
+				}
+				if _, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights.0.group"); ok {
+					var group hesperidesTemplateFileRights
+					if v, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights.0.group.0.read"); ok {
+						group.Read = v.(bool)
+					}
+					if v, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights.0.group.0.write"); ok {
+						group.Write = v.(bool)
+					}
+					if v, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights.0.group.0.execute"); ok {
+						group.Execute = v.(bool)
+					}
+					rights.Group = group
+				}
+				if _, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights.0.other"); ok {
+					var other hesperidesTemplateFileRights
+					if v, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights.0.other.0.read"); ok {
+						other.Read = v.(bool)
+					}
+					if v, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights.0.other.0.write"); ok {
+						other.Write = v.(bool)
+					}
+					if v, ok := d.GetOk("templates." + strconv.Itoa(index) + ".rights.0.other.0.execute"); ok {
+						other.Execute = v.(bool)
+					}
+					rights.Other = other
+				}
+			}
+
+			template := hesperidesTemplate{Name: templateName, Namespace: templateNamespace, Filename: templateFilename, Location: templateLocation, Content: templateContent, Rights: rights, VersionId: templateVersionId}
+			templateJson, _ := json.Marshal(template)
+
+			log.Printf("[INFO] Adding Hesperides Template: %s", templateJson)
+
+			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+			var method string
+			if index == 0 {
+				method = http.MethodPost
+			} else {
+				method = http.MethodPut
+			}
+
+			req, _ := http.NewRequest(method, provider.Endpoint+"/rest/templates/packages/"+name+"/"+version+"/workingcopy/templates", bytes.NewBuffer(templateJson))
+			req.Header.Add("Authorization", "Basic "+provider.Token)
+			req.Header.Set("Content-Type", "application/json")
+			client := &http.Client{}
+			_, err := client.Do(req)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	// Release the techno if it was created directly as it
+	if !workingCopy {
+		log.Printf("[INFO] Releasing Hesperides Techno: %s", technoJson)
+
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+		req, _ := http.NewRequest(http.MethodPost, provider.Endpoint+"/rest/templates/packages/create_release?techno_name="+name+"&techno_version="+version, nil)
+		req.Header.Add("Authorization", "Basic "+provider.Token)
+		req.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		_, err := client.Do(req)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	d.SetId(name + "-" + version + "-" + workingCopyStr)
@@ -102,7 +336,7 @@ func resourceHesperidesTechnoDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	req, _ := http.NewRequest(http.MethodDelete, provider.Endpoint+"/rest/templates/packages/"+name+"/"+version+"/"+workingCopyStr, nil)
+	req, _ := http.NewRequest(http.MethodDelete, provider.Endpoint+"/rest/templates/packages/"+name+"/"+version+"/"+workingCopyStr+"/templates", nil)
 	req.Header.Add("Authorization", "Basic "+provider.Token)
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
