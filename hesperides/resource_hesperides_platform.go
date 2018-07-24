@@ -116,12 +116,3 @@ func resourceHesperidesPlatformDelete(d *schema.ResourceData, meta interface{}) 
 
 	return nil
 }
-
-type hesperidesPlatform struct {
-	ApplicationName    string   `json:"application_name"`
-	PlatformName       string   `json:"platform_name"`
-	ApplicationVersion string   `json:"application_version"`
-	Production         bool     `json:"production"`
-	VersionId          int      `json:"version_id"`
-	Modules            []string `json:"modules"`
-}

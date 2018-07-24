@@ -113,9 +113,3 @@ func resourceHesperidesTechnoDelete(d *schema.ResourceData, meta interface{}) er
 
 	return resourceHesperidesApplicationRead(d, meta)
 }
-
-type hesperidesTechno struct {
-	Name        string `json:"name"`
-	Version     string `json:"version"`
-	WorkingCopy bool   `json:"working_copy"`
-}

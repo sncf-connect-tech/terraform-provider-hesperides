@@ -57,7 +57,7 @@ func resourceHesperidesModuleCreate(d *schema.ResourceData, meta interface{}) er
 	workingCopy := d.Get("working_copy").(bool)
 	versionId := d.Get("version_id").(int)
 
-	module := hesperidesModule{Name: name, Version: version, WorkingCopy: workingCopy, Technos: []string{}, VersionId: versionId}
+	module := hesperidesModule{Name: name, Version: version, WorkingCopy: workingCopy, Technos: []hesperidesTechno{}, VersionId: versionId}
 	moduleJson, _ := json.Marshal(module)
 
 	log.Printf("[INFO] Creating Hesperides Module: %s", moduleJson)
@@ -96,7 +96,7 @@ func resourceHesperidesModuleUpdate(d *schema.ResourceData, meta interface{}) er
 	workingCopy := d.Get("working_copy").(bool)
 	versionId := d.Get("version_id").(int)
 
-	module := hesperidesModule{Name: name, Version: version, WorkingCopy: workingCopy, Technos: []string{}, VersionId: versionId}
+	module := hesperidesModule{Name: name, Version: version, WorkingCopy: workingCopy, Technos: []hesperidesTechno{}, VersionId: versionId}
 	moduleJson, _ := json.Marshal(module)
 
 	log.Printf("[INFO] Updating Hesperides Module: %s", moduleJson)
@@ -122,7 +122,7 @@ func resourceHesperidesModuleDelete(d *schema.ResourceData, meta interface{}) er
 	workingCopy := d.Get("working_copy").(bool)
 	versionId := d.Get("version_id").(int)
 
-	module := hesperidesModule{Name: name, Version: version, WorkingCopy: workingCopy, Technos: []string{}, VersionId: versionId}
+	module := hesperidesModule{Name: name, Version: version, WorkingCopy: workingCopy, Technos: []hesperidesTechno{}, VersionId: versionId}
 	moduleJson, _ := json.Marshal(module)
 
 	log.Printf("[INFO] Deleting Hesperides Module: %s", moduleJson)
@@ -145,12 +145,4 @@ func resourceHesperidesModuleDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return resourceHesperidesApplicationRead(d, meta)
-}
-
-type hesperidesModule struct {
-	Name        string   `json:"name"`
-	Version     string   `json:"version"`
-	WorkingCopy bool     `json:"working_copy"`
-	Technos     []string `json:"technos"`
-	VersionId   int      `json:"version_id"`
 }

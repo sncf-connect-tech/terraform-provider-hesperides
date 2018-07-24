@@ -55,23 +55,3 @@ func resourceHesperidesTemplateUpdate(d *schema.ResourceData, meta interface{}) 
 func resourceHesperidesTemplateDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
-
-type hesperidesTemplate struct {
-	Name      string           `json:"name"`
-	Filename  string           `json:"filename"`
-	Location  string           `json:"location"`
-	Rights    hesperidesRights `json:"rights"`
-	VersionId int              `json:"version_id"`
-}
-
-type hesperidesRights struct {
-	User  hesperidesFileRights `json:"user"`
-	Group hesperidesFileRights `json:"group"`
-	Other hesperidesFileRights `json:"other"`
-}
-
-type hesperidesFileRights struct {
-	Read    bool `json:"read"`
-	Write   bool `json:"write"`
-	Execute bool `json:"execute"`
-}
