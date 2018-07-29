@@ -313,6 +313,55 @@ func resourceHesperidesTechnoRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceHesperidesTechnoUpdate(d *schema.ResourceData, meta interface{}) error {
+	provider := meta.(*Config)
+
+	name := d.Get("name").(string)
+	version := d.Get("version").(string)
+	workingCopy := d.Get("working_copy").(bool)
+
+	techno := hesperidesTechno{Name: name, Version: version, WorkingCopy: workingCopy}
+	technoJson, _ := json.Marshal(techno)
+
+	// Illegal change: use the same resource for a different techno
+	if d.HasChange("name") {
+		return fmt.Errorf("illegal change: \"name\" can not be changed, consider creating a new techno")
+	}
+
+	// Illegal change: the techno pass from a release to a working copy using the same version
+	if !d.HasChange("version") && d.HasChange("working_copy") && workingCopy {
+		return fmt.Errorf("illegal change: could not pass from a release to a working copy using the same version")
+	}
+
+	// Hesperides consider a change in the version as a new techno
+	if d.HasChange("version") {
+		return resourceHesperidesTechnoCreate(d, meta)
+	}
+
+	// Release the techno
+	if d.HasChange("working_copy") && !workingCopy {
+		log.Printf("[INFO] Releasing Hesperides Techno: %s", technoJson)
+
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+		req, _ := http.NewRequest(http.MethodPost, provider.Endpoint+"/rest/templates/packages/create_release?techno_name="+name+"&techno_version="+version, nil)
+		req.Header.Add("Authorization", "Basic "+provider.Token)
+		req.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		_, err := client.Do(req)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	var workingCopyStr string
+	if workingCopy {
+		workingCopyStr = WorkingCopy
+	} else {
+		workingCopyStr = Release
+	}
+
+	d.SetId(name + "-" + version + "-" + workingCopyStr)
+
 	return nil
 }
 
