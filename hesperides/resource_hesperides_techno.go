@@ -312,6 +312,35 @@ func resourceHesperidesTechnoCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceHesperidesTechnoRead(d *schema.ResourceData, meta interface{}) error {
+	provider := meta.(*Config)
+
+	name := d.Get("name").(string)
+	version := d.Get("version").(string)
+	workingCopy := d.Get("working_copy").(bool)
+
+	techno := hesperidesTechno{Name: name, Version: version, WorkingCopy: workingCopy}
+	technoJson, _ := json.Marshal(techno)
+
+	log.Printf("[DEBUG] Reading Hesperides Techno: %s", technoJson)
+
+	var workingCopyStr string
+	if workingCopy {
+		workingCopyStr = WorkingCopy
+	} else {
+		workingCopyStr = Release
+	}
+
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+	req, _ := http.NewRequest(http.MethodGet, provider.Endpoint+"/rest/templates/packages/"+name+"/"+version+"/"+workingCopyStr, nil)
+	req.Header.Add("Authorization", "Basic "+provider.Token)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
 	return nil
 }
 
