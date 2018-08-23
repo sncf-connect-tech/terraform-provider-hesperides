@@ -18,6 +18,9 @@ func resourceHesperidesTechno() *schema.Resource {
 		Read:   resourceHesperidesTechnoRead,
 		Update: resourceHesperidesTechnoUpdate,
 		Delete: resourceHesperidesTechnoDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceHesperidesTechnoImportState,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -395,4 +398,31 @@ func resourceHesperidesTechnoDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return resourceHesperidesApplicationRead(d, meta)
+}
+
+func resourceHesperidesTechnoImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	provider := meta.(*Config)
+
+	name, version, workingCopyStr := parseThreePartID(d.Id())
+
+	var workingCopy = workingCopyStr == WorkingCopy
+
+	techno := hesperidesTechno{Name: name, Version: version, WorkingCopy: workingCopy}
+	technoJson, _ := json.Marshal(techno)
+
+	log.Printf("[INFO] Importing Hesperides Techno: %s", technoJson)
+
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	req, _ := http.NewRequest(http.MethodGet, provider.Endpoint+"/rest/templates/packages/"+name+"/"+version+"/"+workingCopyStr, nil)
+	req.Header.Add("Authorization", "Basic "+provider.Token)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	_, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	d.SetId(name + "-" + version + "-" + workingCopyStr)
+
+	return []*schema.ResourceData{d}, nil
 }
