@@ -2,11 +2,9 @@ package hesperides
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"strconv"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -270,22 +268,10 @@ func resourceHesperidesTechnoCreate(d *schema.ResourceData, meta interface{}) er
 
 			log.Printf("[INFO] Adding Hesperides Template: %s", templateJson)
 
-			http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
-			var method string
 			if index == 0 {
-				method = http.MethodPost
+				technoAddTemplates(*provider, name, version, WorkingCopy, bytes.NewBuffer(templateJson))
 			} else {
-				method = http.MethodPut
-			}
-
-			req, _ := http.NewRequest(method, provider.Endpoint+"/rest/templates/packages/"+name+"/"+version+"/workingcopy/templates", bytes.NewBuffer(templateJson))
-			req.Header.Add("Authorization", "Basic "+provider.Token)
-			req.Header.Set("Content-Type", "application/json")
-			client := &http.Client{}
-			_, err := client.Do(req)
-			if err != nil {
-				panic(err)
+				technoUpdateTemplates(*provider, name, version, WorkingCopy, bytes.NewBuffer(templateJson))
 			}
 		}
 	}
@@ -294,16 +280,7 @@ func resourceHesperidesTechnoCreate(d *schema.ResourceData, meta interface{}) er
 	if !workingCopy {
 		log.Printf("[INFO] Releasing Hesperides Techno: %s", technoJson)
 
-		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
-		req, _ := http.NewRequest(http.MethodPost, provider.Endpoint+"/rest/templates/packages/create_release?techno_name="+name+"&techno_version="+version, nil)
-		req.Header.Add("Authorization", "Basic "+provider.Token)
-		req.Header.Set("Content-Type", "application/json")
-		client := &http.Client{}
-		_, err := client.Do(req)
-		if err != nil {
-			panic(err)
-		}
+		technoRelease(*provider, name, version)
 	}
 
 	d.SetId(name + "-" + version + "-" + workingCopyStr)
@@ -323,22 +300,10 @@ func resourceHesperidesTechnoRead(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[DEBUG] Reading Hesperides Techno: %s", technoJson)
 
-	var workingCopyStr string
 	if workingCopy {
-		workingCopyStr = WorkingCopy
+		technoReadTemplates(*provider, name, version, WorkingCopy)
 	} else {
-		workingCopyStr = Release
-	}
-
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
-	req, _ := http.NewRequest(http.MethodGet, provider.Endpoint+"/rest/templates/packages/"+name+"/"+version+"/"+workingCopyStr, nil)
-	req.Header.Add("Authorization", "Basic "+provider.Token)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	_, err := client.Do(req)
-	if err != nil {
-		panic(err)
+		technoReadTemplates(*provider, name, version, Release)
 	}
 
 	return nil
@@ -373,16 +338,7 @@ func resourceHesperidesTechnoUpdate(d *schema.ResourceData, meta interface{}) er
 	if d.HasChange("working_copy") && !workingCopy {
 		log.Printf("[INFO] Releasing Hesperides Techno: %s", technoJson)
 
-		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
-		req, _ := http.NewRequest(http.MethodPost, provider.Endpoint+"/rest/templates/packages/create_release?techno_name="+name+"&techno_version="+version, nil)
-		req.Header.Add("Authorization", "Basic "+provider.Token)
-		req.Header.Set("Content-Type", "application/json")
-		client := &http.Client{}
-		_, err := client.Do(req)
-		if err != nil {
-			panic(err)
-		}
+		technoRelease(*provider, name, version)
 	}
 
 	var workingCopyStr string
@@ -409,21 +365,10 @@ func resourceHesperidesTechnoDelete(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Deleting Hesperides Techno: %s", technoJson)
 
-	var workingCopyStr string
 	if workingCopy {
-		workingCopyStr = WorkingCopy
+		technoDeleteTemplates(*provider, name, version, WorkingCopy)
 	} else {
-		workingCopyStr = Release
-	}
-
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	req, _ := http.NewRequest(http.MethodDelete, provider.Endpoint+"/rest/templates/packages/"+name+"/"+version+"/"+workingCopyStr+"/templates", nil)
-	req.Header.Add("Authorization", "Basic "+provider.Token)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	_, err := client.Do(req)
-	if err != nil {
-		panic(err)
+		technoDeleteTemplates(*provider, name, version, Release)
 	}
 
 	return resourceHesperidesApplicationRead(d, meta)
@@ -441,14 +386,10 @@ func resourceHesperidesTechnoImportState(d *schema.ResourceData, meta interface{
 
 	log.Printf("[INFO] Importing Hesperides Techno: %s", technoJson)
 
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	req, _ := http.NewRequest(http.MethodGet, provider.Endpoint+"/rest/templates/packages/"+name+"/"+version+"/"+workingCopyStr, nil)
-	req.Header.Add("Authorization", "Basic "+provider.Token)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	_, err := client.Do(req)
-	if err != nil {
-		panic(err)
+	if workingCopy {
+		technoReadTemplates(*provider, name, version, WorkingCopy)
+	} else {
+		technoReadTemplates(*provider, name, version, Release)
 	}
 
 	d.SetId(name + "-" + version + "-" + workingCopyStr)
