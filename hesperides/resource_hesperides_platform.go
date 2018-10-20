@@ -2,12 +2,9 @@ package hesperides
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
-	"log"
-	"net/http"
-
 	"github.com/hashicorp/terraform/helper/schema"
+	"log"
 )
 
 func resourceHesperidesPlatform() *schema.Resource {
@@ -53,15 +50,7 @@ func resourceHesperidesPlatformCreate(d *schema.ResourceData, meta interface{}) 
 
 	log.Printf("[INFO] Creating Hesperides Platform: %s", platformJson)
 
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	req, _ := http.NewRequest(http.MethodPost, provider.Endpoint+"/rest/applications/"+application+"/platforms", bytes.NewBuffer(platformJson))
-	req.Header.Add("Authorization", "Basic "+provider.Token)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	_, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
+	platformCreate(*provider, application, bytes.NewBuffer(platformJson))
 
 	d.SetId(buildTwoPartID(&application, &name))
 
@@ -84,15 +73,7 @@ func resourceHesperidesPlatformUpdate(d *schema.ResourceData, meta interface{}) 
 
 	log.Printf("[INFO] Updating Hesperides Platform: %s", platformJson)
 
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	req, _ := http.NewRequest(http.MethodPut, provider.Endpoint+"/rest/applications/"+applicationName+"/platforms/"+platformName, bytes.NewBuffer(platformJson))
-	req.Header.Add("Authorization", "Basic "+provider.Token)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	_, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
+	platformUpdate(*provider, applicationName, platformName, bytes.NewBuffer(platformJson))
 
 	return nil
 }
@@ -104,15 +85,7 @@ func resourceHesperidesPlatformDelete(d *schema.ResourceData, meta interface{}) 
 
 	log.Printf("[INFO] Deleting Hesperides Platform: %s", d.Id())
 
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	req, _ := http.NewRequest(http.MethodDelete, provider.Endpoint+"/rest/applications/"+applicationName+"/platforms/"+platformName, nil)
-	req.Header.Add("Authorization", "Basic "+provider.Token)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	_, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
+	platformDelete(*provider, applicationName, platformName)
 
 	return nil
 }

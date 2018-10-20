@@ -20,6 +20,21 @@ func hesperidesClient(config Config, method string, url string, body io.Reader) 
 	return response
 }
 
+func platformCreate(config Config, application string, body io.Reader) {
+	url := "/rest/applications/" + application + "/platforms"
+	hesperidesClient(config, http.MethodPost, url, body)
+}
+
+func platformDelete(config Config, application string, platform string) {
+	url := "/rest/applications/" + application + "/platforms/" + platform
+	hesperidesClient(config, http.MethodDelete, url, nil)
+}
+
+func platformUpdate(config Config, application string, platform string, body io.Reader) {
+	url := "/rest/applications/" + application + "/platforms/" + platform
+	hesperidesClient(config, http.MethodPut, url, body)
+}
+
 func technoAddTemplates(config Config, name string, version string, releaseType string, body io.Reader) {
 	url := "/rest/templates/packages/" + name + "/" + version + "/" + releaseType + "/templates"
 	hesperidesClient(config, http.MethodPost, url, body)
