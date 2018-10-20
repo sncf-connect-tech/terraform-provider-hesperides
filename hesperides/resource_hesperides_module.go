@@ -70,10 +70,24 @@ func resourceHesperidesModuleCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(name + "-" + version + "-" + workingCopyStr)
 
-	return nil
+	return resourceHesperidesModuleRead(d, meta)
 }
 
 func resourceHesperidesModuleRead(d *schema.ResourceData, meta interface{}) error {
+	provider := meta.(*Config)
+
+	name := d.Get("name").(string)
+	version := d.Get("version").(string)
+	workingCopy := d.Get("working_copy").(bool)
+
+	log.Printf("[DEBUG] Reading Hesperides Module: %s", name)
+
+	if workingCopy {
+		moduleRead(*provider, name, version, WorkingCopy)
+	} else {
+		moduleRead(*provider, name, version, Release)
+	}
+
 	return nil
 }
 
@@ -92,7 +106,7 @@ func resourceHesperidesModuleUpdate(d *schema.ResourceData, meta interface{}) er
 
 	moduleUpdate(*provider, bytes.NewBuffer(moduleJson))
 
-	return resourceHesperidesApplicationRead(d, meta)
+	return resourceHesperidesModuleRead(d, meta)
 }
 
 func resourceHesperidesModuleDelete(d *schema.ResourceData, meta interface{}) error {
@@ -114,5 +128,5 @@ func resourceHesperidesModuleDelete(d *schema.ResourceData, meta interface{}) er
 		moduleDelete(*provider, name, version, Release)
 	}
 
-	return resourceHesperidesApplicationRead(d, meta)
+	return nil
 }

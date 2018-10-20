@@ -54,10 +54,19 @@ func resourceHesperidesPlatformCreate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(buildTwoPartID(&application, &name))
 
-	return nil
+	return resourceHesperidesPlatformRead(d, meta)
 }
 
 func resourceHesperidesPlatformRead(d *schema.ResourceData, meta interface{}) error {
+	provider := meta.(*Config)
+
+	application := d.Get("application").(string)
+	name := d.Get("name").(string)
+
+	log.Printf("[DEBUG] Reading Hesperides Platform: %s", name)
+
+	platformRead(*provider, application, name)
+
 	return nil
 }
 
@@ -75,7 +84,7 @@ func resourceHesperidesPlatformUpdate(d *schema.ResourceData, meta interface{}) 
 
 	platformUpdate(*provider, applicationName, platformName, bytes.NewBuffer(platformJson))
 
-	return nil
+	return resourceHesperidesPlatformRead(d, meta)
 }
 
 func resourceHesperidesPlatformDelete(d *schema.ResourceData, meta interface{}) error {

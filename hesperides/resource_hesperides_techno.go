@@ -285,7 +285,7 @@ func resourceHesperidesTechnoCreate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(name + "-" + version + "-" + workingCopyStr)
 
-	return nil
+	return resourceHesperidesTechnoRead(d, meta)
 }
 
 func resourceHesperidesTechnoRead(d *schema.ResourceData, meta interface{}) error {
@@ -306,7 +306,7 @@ func resourceHesperidesTechnoRead(d *schema.ResourceData, meta interface{}) erro
 		technoReadTemplates(*provider, name, version, Release)
 	}
 
-	return nil
+	return resourceHesperidesTechnoRead(d, meta)
 }
 
 func resourceHesperidesTechnoUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -350,7 +350,7 @@ func resourceHesperidesTechnoUpdate(d *schema.ResourceData, meta interface{}) er
 
 	d.SetId(name + "-" + version + "-" + workingCopyStr)
 
-	return nil
+	return resourceHesperidesTechnoRead(d, meta)
 }
 
 func resourceHesperidesTechnoDelete(d *schema.ResourceData, meta interface{}) error {
@@ -371,7 +371,7 @@ func resourceHesperidesTechnoDelete(d *schema.ResourceData, meta interface{}) er
 		technoDeleteTemplates(*provider, name, version, Release)
 	}
 
-	return resourceHesperidesApplicationRead(d, meta)
+	return resourceHesperidesTechnoRead(d, meta)
 }
 
 func resourceHesperidesTechnoImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {

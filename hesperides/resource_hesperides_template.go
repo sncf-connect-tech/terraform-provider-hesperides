@@ -41,7 +41,7 @@ func resourceHesperidesTemplate() *schema.Resource {
 }
 
 func resourceHesperidesTemplateCreate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	return resourceHesperidesTemplateRead(d, meta)
 }
 
 func resourceHesperidesTemplateRead(d *schema.ResourceData, meta interface{}) error {
@@ -49,7 +49,7 @@ func resourceHesperidesTemplateRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceHesperidesTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	return resourceHesperidesTemplateRead(d, meta)
 }
 
 func resourceHesperidesTemplateDelete(d *schema.ResourceData, meta interface{}) error {

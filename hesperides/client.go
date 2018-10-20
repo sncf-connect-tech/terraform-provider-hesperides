@@ -20,6 +20,13 @@ func hesperidesClient(config Config, method string, url string, body io.Reader) 
 	return response
 }
 
+// APPLICATION
+
+func applicationRead(config Config, name string) *http.Response {
+	url := "/rest/applications" + name
+	return hesperidesClient(config, http.MethodGet, url, nil)
+}
+
 // MODULE
 
 func moduleCreate(config Config, body io.Reader) {
@@ -30,6 +37,11 @@ func moduleCreate(config Config, body io.Reader) {
 func moduleDelete(config Config, name string, version string, releaseType string) {
 	url := "/rest/modules/" + name + "/" + version + "/" + releaseType
 	hesperidesClient(config, http.MethodDelete, url, nil)
+}
+
+func moduleRead(config Config, name string, version string, releaseType string) *http.Response {
+	url := "/rest/modules/" + name + "/" + version + "/" + releaseType
+	return hesperidesClient(config, http.MethodGet, url, nil)
 }
 
 func moduleUpdate(config Config, body io.Reader) {
@@ -47,6 +59,11 @@ func platformCreate(config Config, application string, body io.Reader) {
 func platformDelete(config Config, application string, platform string) {
 	url := "/rest/applications/" + application + "/platforms/" + platform
 	hesperidesClient(config, http.MethodDelete, url, nil)
+}
+
+func platformRead(config Config, applicationName string, platformName string) *http.Response {
+	url := "/rest/" + applicationName + "/platforms/" + platformName
+	return hesperidesClient(config, http.MethodGet, url, nil)
 }
 
 func platformUpdate(config Config, application string, platform string, body io.Reader) {
