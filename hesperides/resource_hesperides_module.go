@@ -2,12 +2,9 @@ package hesperides
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/json"
-	"log"
-	"net/http"
-
 	"github.com/hashicorp/terraform/helper/schema"
+	"log"
 )
 
 func resourceHesperidesModule() *schema.Resource {
@@ -62,22 +59,14 @@ func resourceHesperidesModuleCreate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Creating Hesperides Module: %s", moduleJson)
 
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	req, _ := http.NewRequest(http.MethodPost, provider.Endpoint+"/rest/modules", bytes.NewBuffer(moduleJson))
-	req.Header.Add("Authorization", "Basic "+provider.Token)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	_, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
 	var workingCopyStr string
 	if workingCopy {
-		workingCopyStr = "workingcopy"
+		workingCopyStr = WorkingCopy
 	} else {
-		workingCopyStr = "release"
+		workingCopyStr = Release
 	}
+
+	moduleCreate(*provider, bytes.NewBuffer(moduleJson))
 
 	d.SetId(name + "-" + version + "-" + workingCopyStr)
 
@@ -101,15 +90,7 @@ func resourceHesperidesModuleUpdate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Updating Hesperides Module: %s", moduleJson)
 
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	req, _ := http.NewRequest(http.MethodPut, provider.Endpoint+"/rest/modules", bytes.NewBuffer(moduleJson))
-	req.Header.Add("Authorization", "Basic "+provider.Token)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	_, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
+	moduleUpdate(*provider, bytes.NewBuffer(moduleJson))
 
 	return resourceHesperidesApplicationRead(d, meta)
 }
@@ -127,21 +108,10 @@ func resourceHesperidesModuleDelete(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[INFO] Deleting Hesperides Module: %s", moduleJson)
 
-	var workingCopyStr string
 	if workingCopy {
-		workingCopyStr = WorkingCopy
+		moduleDelete(*provider, name, version, WorkingCopy)
 	} else {
-		workingCopyStr = Release
-	}
-
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	req, _ := http.NewRequest(http.MethodDelete, provider.Endpoint+"/rest/modules/"+name+"/"+version+"/"+workingCopyStr, nil)
-	req.Header.Add("Authorization", "Basic "+provider.Token)
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	_, err := client.Do(req)
-	if err != nil {
-		panic(err)
+		moduleDelete(*provider, name, version, Release)
 	}
 
 	return resourceHesperidesApplicationRead(d, meta)
