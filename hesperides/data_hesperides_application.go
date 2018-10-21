@@ -7,7 +7,7 @@ import (
 
 func dataHesperidesApplication() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataHesperidesApplicationRead,
+		Read: dataHesperidesApplicationRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {

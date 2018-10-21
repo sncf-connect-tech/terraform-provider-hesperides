@@ -7,7 +7,7 @@ import (
 
 func dataHesperidesPlatform() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataHesperidesPlatformRead,
+		Read: dataHesperidesPlatformRead,
 
 		Schema: map[string]*schema.Schema{
 			"application": {
@@ -22,10 +22,6 @@ func dataHesperidesPlatform() *schema.Resource {
 			},
 			"version": {
 				Type:     schema.TypeString,
-				Required: true,
-			},
-			"production": {
-				Type:     schema.TypeBool,
 				Required: true,
 			},
 		},

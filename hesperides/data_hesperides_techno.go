@@ -1,13 +1,14 @@
 package hesperides
 
 import (
+	"encoding/json"
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 )
 
-func dataHesperidesModule() *schema.Resource {
+func dataHesperidesTechno() *schema.Resource {
 	return &schema.Resource{
-		Read: dataHesperidesModuleRead,
+		Read: dataHesperidesTechnoRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -15,40 +16,40 @@ func dataHesperidesModule() *schema.Resource {
 				Optional: false,
 				Required: true,
 				Computed: false,
-				ForceNew: true,
 			},
 			"version": {
 				Type:     schema.TypeString,
 				Optional: false,
 				Required: true,
 				Computed: false,
-				ForceNew: true,
 			},
 			"working_copy": {
 				Type:     schema.TypeBool,
 				Optional: false,
 				Required: true,
 				Computed: false,
-				ForceNew: true,
 			},
 		},
 	}
 }
 
-func dataHesperidesModuleRead(d *schema.ResourceData, meta interface{}) error {
+func dataHesperidesTechnoRead(d *schema.ResourceData, meta interface{}) error {
 	provider := meta.(*Config)
 
 	name := d.Get("name").(string)
 	version := d.Get("version").(string)
 	workingCopy := d.Get("working_copy").(bool)
 
-	log.Printf("[DEBUG] Reading Hesperides Module: %s", name)
+	techno := hesperidesTechno{Name: name, Version: version, WorkingCopy: workingCopy}
+	technoJson, _ := json.Marshal(techno)
+
+	log.Printf("[DEBUG] Reading Hesperides Techno: %s", technoJson)
 
 	if workingCopy {
-		moduleRead(*provider, name, version, WorkingCopy)
+		technoReadTemplates(*provider, name, version, WorkingCopy)
 	} else {
-		moduleRead(*provider, name, version, Release)
+		technoReadTemplates(*provider, name, version, Release)
 	}
 
-	return nil
+	return resourceHesperidesTechnoRead(d, meta)
 }
