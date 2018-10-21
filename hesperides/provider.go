@@ -22,6 +22,7 @@ func Provider() terraform.ResourceProvider {
 
 		DataSourcesMap: map[string]*schema.Resource{
 			"hesperides_application": dataHesperidesApplication(),
+			"hesperides_module": dataHesperidesModule(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
